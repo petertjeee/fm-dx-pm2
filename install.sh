@@ -146,7 +146,8 @@ module.exports = {
     },
     {
       name: 'fm-dx-monitoring',
-      script: 'index.js',
+      script: 'bash',
+      args: '-c "sleep 20 && node index.js"',
       cwd: '$MONITORING_PATH',
       restart_delay: 2000,
       autorestart: true,

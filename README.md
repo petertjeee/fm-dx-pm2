@@ -97,7 +97,8 @@ module.exports = {
     },
     {
       name: 'fm-dx-monitoring',
-      script: 'index.js',
+      script: 'bash',
+      args: '-c "sleep 20 && node index.js"',
       cwd: '/home/pi/fm-dx-monitoring',  // <-- change this
       restart_delay: 2000,
       autorestart: true,
@@ -308,7 +309,7 @@ This will:
 - Verify the `/restart` route was added correctly to `endpoints.js`
 
 **fm-dx-monitoring still shows old data after restart**
-- The 20-second delay in the restart command is usually enough. If not, increase it in `endpoints.js` by changing `sleep 20` to a higher value (e.g. `sleep 30`)
+- The 20-second delay is usually enough. If not, increase it in two places: the `args` field in `ecosystem.config.js` (startup delay) and the `RESTART_CMD` in the installed `plugins/pm2restart.js` (button restart delay), changing `sleep 20` to a higher value (e.g. `sleep 30`)
 
 **Apps don't start on boot**
 - Re-run `pm2 startup` and make sure you ran the printed `sudo env ...` command
