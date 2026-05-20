@@ -16,14 +16,9 @@
     const PLUGIN_UPDATE_URL = 'https://raw.githubusercontent.com/petertjeee/fm-dx-pm2/main/plugin/pm2restart.js';
     const CHECK_FOR_UPDATES = true;
 
-    // Detect admin by checking for the admin dashboard element
-    function isAdmin() {
-        return !!document.querySelector('.admin-quick-dashboard #dashboard-lock-admin');
-    }
-
-    // Only inject on the setup page and only for admins
+    // Only inject on the setup page (/setup is admin-only — no further check needed)
     function shouldInject() {
-        return window.location.pathname.includes('/setup') && isAdmin();
+        return window.location.pathname.includes('/setup');
     }
 
     function injectButton() {
