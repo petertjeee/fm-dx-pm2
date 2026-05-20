@@ -15,7 +15,7 @@ const https = require('https');
 var pluginConfig = {
     name: 'PM2 Restart',
     version: '1.0.0',
-    author: 'fm-dx-pm2',
+    author: 'petertjeee',
     frontEndPath: 'pm2restart/frontend.js'
 };
 
