@@ -229,7 +229,7 @@ fi
 success "Plugin installed: $PLUGIN_DST/pm2restart.js + $PLUGIN_DST/pm2restart/"
 
 # =============================================================================
-# STEP 6 — Configure sudoers (allow pm2 restart without password)
+# STEP 6 — Configure sudoers (allow passwordless PM2 restart)
 # =============================================================================
 step "Configuring sudoers for PM2"
 
@@ -246,6 +246,59 @@ else
     echo "$SUDOERS_LINE" | sudo tee "$SUDOERS_FILE" > /dev/null
     sudo chmod 440 "$SUDOERS_FILE"
     success "Sudoers rule written: $SUDOERS_FILE"
+fi
+
+# =============================================================================
+# STEP 7 — Check for conflicting systemd services
+# (runs after sudoers so sudo is already configured)
+# =============================================================================
+step "Checking for existing systemd services"
+
+check_and_disable_service() {
+    local SERVICE_NAME="$1"
+    local DISPLAY_NAME="$2"
+
+    # Check common service file locations
+    local SERVICE_FILE=""
+    for f in \
+        "/etc/systemd/system/${SERVICE_NAME}.service" \
+        "/lib/systemd/system/${SERVICE_NAME}.service" \
+        "/usr/lib/systemd/system/${SERVICE_NAME}.service"; do
+        if [ -f "$f" ]; then
+            SERVICE_FILE="$f"
+            break
+        fi
+    done
+
+    # Also check if systemd knows about it (handles masked/generated units)
+    local IS_ENABLED=false
+    if systemctl is-enabled "$SERVICE_NAME" >/dev/null 2>&1; then
+        IS_ENABLED=true
+    fi
+
+    if [ -n "$SERVICE_FILE" ] || [ "$IS_ENABLED" = true ]; then
+        echo ""
+        warn "Found existing systemd service for ${DISPLAY_NAME}: ${SERVICE_FILE:-$SERVICE_NAME}"
+        local STATUS
+        STATUS=$(systemctl is-active "$SERVICE_NAME" 2>/dev/null || echo "unknown")
+        info "Service status: $STATUS"
+        echo ""
+        read -rp "  Disable and stop this systemd service so PM2 can take over? [Y/n]: " DISABLE_IT
+        DISABLE_IT="${DISABLE_IT:-Y}"
+        if [[ "$DISABLE_IT" =~ ^[Yy]$ ]]; then
+            sudo systemctl stop "$SERVICE_NAME" 2>/dev/null && info "Stopped $SERVICE_NAME" || true
+            sudo systemctl disable "$SERVICE_NAME" 2>/dev/null && success "Disabled $SERVICE_NAME" || warn "Could not disable $SERVICE_NAME — disable it manually"
+        else
+            warn "Skipped. Note: both systemd and PM2 managing the same process may cause conflicts."
+        fi
+    else
+        success "No systemd service found for ${DISPLAY_NAME}"
+    fi
+}
+
+check_and_disable_service "fm-dx-webserver" "fm-dx-webserver"
+if [ "$USE_MONITORING" = true ]; then
+    check_and_disable_service "fm-dx-monitoring" "fm-dx-monitoring"
 fi
 
 # =============================================================================
