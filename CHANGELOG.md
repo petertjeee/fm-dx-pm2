@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.0.2
+
+- Added `install.ps1` — Windows PowerShell installer (no sudo needed, uses pm2-windows-startup for boot auto-start)
+- Added `delay-start.js` — cross-platform startup delay wrapper for fm-dx-monitoring (replaces bash `sleep` one-liner, works on Linux/macOS/Windows)
+- Ecosystem config updated to use `delay-start.js` instead of bash wrapper
+- README updated with Windows quick install section and platform notes
+
 ## v1.0.1
 
 - Increased default `max_memory_restart` for fm-dx-webserver from 300M to 800M
