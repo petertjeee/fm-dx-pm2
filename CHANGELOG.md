@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.0.1
+
+- Increased default `max_memory_restart` for fm-dx-webserver from 300M to 800M
+- Increased default `max_memory_restart` for fm-dx-monitoring from 200M to 500M
+
 ## v1.0.0 — Initial Release
 
 - Installs PM2 to manage fm-dx-webserver (and optionally fm-dx-monitoring)
