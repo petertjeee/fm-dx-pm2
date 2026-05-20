@@ -74,7 +74,11 @@ if command -v pm2 >/dev/null 2>&1; then
     success "PM2 $PM2_VER already installed"
 else
     info "Installing PM2 globally (requires npm)..."
-    npm install -g pm2 || error "Failed to install PM2. Try: sudo npm install -g pm2"
+    if [ "$(id -u)" -eq 0 ]; then
+        npm install -g pm2 || error "Failed to install PM2."
+    else
+        sudo npm install -g pm2 || error "Failed to install PM2. Try running: sudo npm install -g pm2"
+    fi
     success "PM2 installed"
 fi
 
