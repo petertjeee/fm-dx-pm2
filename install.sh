@@ -209,7 +209,7 @@ fi
 
 # Copy delay-start.js to monitoring directory if needed
 if [ "$USE_MONITORING" = true ]; then
-    cp "$PLUGIN_SRC/delay-start.js" "$MONITORING_PATH/delay-start.js"
+    cp "$SCRIPT_DIR/delay-start.js" "$MONITORING_PATH/delay-start.js"
     success "Copied delay-start.js to $MONITORING_PATH"
 fi
 

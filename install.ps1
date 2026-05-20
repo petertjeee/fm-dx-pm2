@@ -183,7 +183,7 @@ if (-not (Test-Path $pluginDst)) { Err "Plugins directory not found in fm-dx-web
 
 # Copy delay-start.js to monitoring directory if needed
 if ($useMonitoring) {
-    Copy-Item "$pluginSrc\delay-start.js" "$monitoringPath\delay-start.js" -Force
+    Copy-Item "$SCRIPT_DIR\delay-start.js" "$monitoringPath\delay-start.js" -Force
     Success "Copied delay-start.js to $monitoringPath"
 }
 

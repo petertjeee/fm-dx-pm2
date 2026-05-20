@@ -133,10 +133,10 @@ module.exports = {
 
 ---
 
-Before starting, copy `delay-start.js` from the `fm-dx-pm2/plugin/` directory into your fm-dx-monitoring directory:
+Before starting, copy `delay-start.js` from the `fm-dx-pm2` directory into your fm-dx-monitoring directory:
 
 ```bash
-cp ~/fm-dx-pm2/plugin/delay-start.js ~/fm-dx-monitoring/delay-start.js
+cp ~/fm-dx-pm2/delay-start.js ~/fm-dx-monitoring/delay-start.js
 ```
 
 ---
