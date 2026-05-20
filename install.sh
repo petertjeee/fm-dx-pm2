@@ -38,6 +38,27 @@ echo -e "  Installs the pm2restart plugin — no source code patching required.\
 # =============================================================================
 step "Checking prerequisites"
 
+if [ "$(id -u)" -eq 0 ]; then
+    echo ""
+    echo -e "${YELLOW}${BOLD}  ⚠  WARNING: You are running this script as root!${NC}"
+    echo ""
+    echo -e "  Running PM2 and fm-dx-webserver as root is not recommended."
+    echo -e "  It means the web server process has full system access."
+    echo ""
+    echo -e "  ${BOLD}Recommended:${NC} exit now and run as the regular user that owns fm-dx-webserver."
+    echo -e "  Example:  ${BOLD}su - fmdx${NC}  then re-run this script."
+    echo ""
+    read -rp "  Continue as root anyway? [y/N]: " ROOT_CONTINUE
+    ROOT_CONTINUE="${ROOT_CONTINUE:-N}"
+    if [[ ! "$ROOT_CONTINUE" =~ ^[Yy]$ ]]; then
+        echo ""
+        echo "  Aborted. Please re-run as the correct user."
+        echo ""
+        exit 1
+    fi
+    warn "Continuing as root — you have been warned."
+fi
+
 command -v node >/dev/null 2>&1 || error "Node.js is not installed. Install it first: https://nodejs.org"
 command -v npm  >/dev/null 2>&1 || error "npm is not installed."
 NODE_VER=$(node -v)
@@ -301,6 +322,28 @@ if [ "$USE_MONITORING" = true ]; then
     check_and_disable_service "fm-dx-monitoring" "fm-dx-monitoring"
 fi
 
+# Check if a PM2 startup unit for root already exists
+PM2_ROOT_UNIT="/etc/systemd/system/pm2-root.service"
+if [ -f "$PM2_ROOT_UNIT" ] || systemctl is-enabled pm2-root >/dev/null 2>&1; then
+    echo ""
+    warn "Found a PM2 startup service running as root: pm2-root"
+    echo -e "  This means PM2 (and all its apps) start as root on boot."
+    echo -e "  ${BOLD}Recommended fix:${NC}"
+    echo -e "    1. sudo systemctl disable pm2-root"
+    echo -e "    2. sudo systemctl stop pm2-root"
+    CURRENT_USER_NAME=$(whoami)
+    echo -e "    3. Run ${BOLD}pm2 startup${NC} as ${BOLD}${CURRENT_USER_NAME}${NC} and run the command it prints"
+    echo ""
+    read -rp "  Disable pm2-root service now? [Y/n]: " DISABLE_PM2_ROOT
+    DISABLE_PM2_ROOT="${DISABLE_PM2_ROOT:-Y}"
+    if [[ "$DISABLE_PM2_ROOT" =~ ^[Yy]$ ]]; then
+        sudo systemctl stop pm2-root 2>/dev/null || true
+        sudo systemctl disable pm2-root 2>/dev/null && success "pm2-root disabled" || warn "Could not disable pm2-root — run: sudo systemctl disable pm2-root"
+    else
+        warn "Skipped. PM2 will still start as root on next boot."
+    fi
+fi
+
 # =============================================================================
 # STEP 8 — Start apps with PM2
 # =============================================================================
@@ -322,10 +365,20 @@ if [[ "$START_NOW" =~ ^[Yy]$ ]]; then
     success "Apps started and saved"
 
     echo ""
+    STARTUP_USER=$(whoami)
     info "To enable auto-start on boot, run the command printed by:"
     echo -e "  ${BOLD}pm2 startup${NC}"
     echo -e "  (copy and run the 'sudo env ...' command it outputs)\n"
-    pm2 startup 2>&1 | grep "sudo" | head -1 | xargs -I{} echo -e "  ${YELLOW}Run this:${NC} {}"
+    STARTUP_CMD=$(pm2 startup 2>&1 | grep "sudo" | head -1)
+    if [ -n "$STARTUP_CMD" ]; then
+        echo -e "  ${YELLOW}Run this:${NC} $STARTUP_CMD"
+        if echo "$STARTUP_CMD" | grep -q 'pm2-root'; then
+            echo ""
+            warn "The startup command above will register PM2 as root."
+            echo -e "  To run as ${BOLD}${STARTUP_USER}${NC} instead, make sure you are NOT in a root shell"
+            echo -e "  and run ${BOLD}pm2 startup${NC} again as ${BOLD}${STARTUP_USER}${NC}."
+        fi
+    fi
 else
     info "Skipped. Start manually with: pm2 start $ECOSYSTEM_PATH"
 fi
