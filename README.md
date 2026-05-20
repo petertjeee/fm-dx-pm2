@@ -51,10 +51,10 @@ pm2 -v
 
 The ecosystem file tells PM2 about both apps — where they are and how to run them.
 
-Create a file called `ecosystem.config.js` somewhere accessible (e.g. your home directory):
+Create a file called `ecosystem.config.js` inside the cloned `fm-dx-pm2` directory:
 
 ```bash
-nano ~/ecosystem.config.js
+nano ~/fm-dx-pm2/ecosystem.config.js
 ```
 
 **Without fm-dx-monitoring** — paste this, replacing the `cwd` path:
@@ -116,7 +116,7 @@ module.exports = {
 ### Step 3 — Start both apps with PM2
 
 ```bash
-pm2 start ~/ecosystem.config.js
+pm2 start ~/fm-dx-pm2/ecosystem.config.js
 ```
 
 Check they are running:
