@@ -12,3 +12,4 @@
 - Warning if run as root — recommends running as the regular user
 - Uses `sudo` only where strictly required (npm global install, sudoers, systemctl)
 - Interactive install and uninstall scripts
+- Plugin author set to `petertjeee`
