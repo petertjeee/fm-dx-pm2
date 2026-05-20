@@ -12,6 +12,8 @@ This tool:
 
 ## Quick Install (Recommended)
 
+**Linux / Raspberry Pi / macOS:**
+
 ```bash
 git clone https://github.com/petertjeee/fm-dx-pm2.git
 cd fm-dx-pm2
@@ -19,9 +21,27 @@ chmod +x install.sh
 ./install.sh
 ```
 
+**Windows (PowerShell as Administrator):**
+
+```powershell
+git clone https://github.com/petertjeee/fm-dx-pm2.git
+cd fm-dx-pm2
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\install.ps1
+```
+
 The script will ask for the path to fm-dx-webserver and whether you want to include fm-dx-monitoring, then do everything automatically.
 
 > **Tested on:** Raspberry Pi OS (Bookworm/Bullseye), Node.js 18+
+
+---
+
+## Windows Notes
+
+- No `sudo` needed — PM2 and fm-dx-webserver run as the same user, so the restart button works without elevation
+- Auto-start on boot uses [pm2-windows-startup](https://www.npmjs.com/package/pm2-windows-startup) (installed automatically by `install.ps1`)
+- The monitoring startup delay uses `delay-start.js` (a small Node.js wrapper) instead of a bash `sleep` — works natively on Windows
+- The restart button command uses `timeout /t 20` instead of `sleep 20` for the monitoring delay
 
 ---
 
@@ -97,8 +117,7 @@ module.exports = {
     },
     {
       name: 'fm-dx-monitoring',
-      script: 'bash',
-      args: '-c "sleep 20 && node index.js"',
+      script: 'delay-start.js',
       cwd: '/home/pi/fm-dx-monitoring',  // <-- change this
       restart_delay: 2000,
       autorestart: true,
@@ -110,6 +129,14 @@ module.exports = {
     }
   ]
 };
+```
+
+---
+
+Before starting, copy `delay-start.js` from the `fm-dx-pm2/plugin/` directory into your fm-dx-monitoring directory:
+
+```bash
+cp ~/fm-dx-pm2/plugin/delay-start.js ~/fm-dx-monitoring/delay-start.js
 ```
 
 ---
@@ -309,7 +336,7 @@ This will:
 - Verify the `/restart` route was added correctly to `endpoints.js`
 
 **fm-dx-monitoring still shows old data after restart**
-- The 20-second delay is usually enough. If not, increase it in two places: the `args` field in `ecosystem.config.js` (startup delay) and the `RESTART_CMD` in the installed `plugins/pm2restart.js` (button restart delay), changing `sleep 20` to a higher value (e.g. `sleep 30`)
+- The 20-second delay is usually enough. If not, increase it in two places: the `setTimeout` value in `delay-start.js` (startup delay, in milliseconds) and the `sleep 20` in `RESTART_CMD` inside the installed `plugins/pm2restart.js` (button restart delay)
 
 **Apps don't start on boot**
 - Re-run `pm2 startup` and make sure you ran the printed `sudo env ...` command

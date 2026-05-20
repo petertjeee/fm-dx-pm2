@@ -146,8 +146,7 @@ module.exports = {
     },
     {
       name: 'fm-dx-monitoring',
-      script: 'bash',
-      args: '-c "sleep 20 && node index.js"',
+      script: 'delay-start.js',
       cwd: '$MONITORING_PATH',
       restart_delay: 2000,
       autorestart: true,
@@ -206,6 +205,12 @@ if [ "$USE_MONITORING" = true ]; then
     DESCRIPTION="Restart fm-dx-webserver and fm-dx-monitoring. fm-dx-monitoring restarts automatically 20 seconds after the webserver."
 else
     DESCRIPTION="Restart fm-dx-webserver via PM2. The page will reload automatically when the server is back online."
+fi
+
+# Copy delay-start.js to monitoring directory if needed
+if [ "$USE_MONITORING" = true ]; then
+    cp "$PLUGIN_SRC/delay-start.js" "$MONITORING_PATH/delay-start.js"
+    success "Copied delay-start.js to $MONITORING_PATH"
 fi
 
 # Copy plugin backend
